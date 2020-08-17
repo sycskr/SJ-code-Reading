@@ -40,50 +40,86 @@ static bool heightJudge(const LightBlob &light_blob_i, const LightBlob &light_bl
 /**
  * name @ lengthJudge
  * params @ 两个LightBlob
- * func @ 判断两个灯条的间距
+ * func @ 判断两个灯条的间距(在装甲板长度的0.5到10倍之间)
  * return @ static bool
 */
 static bool lengthJudge(const LightBlob &light_blob_i, const LightBlob &light_blob_j) {
     double side_length;
     cv::Point2f centers = light_blob_i.rect.center - light_blob_j.rect.center;
+    //center与自己点乘后开方，即根号下（x^2+y^2）
     side_length = sqrt(centers.ddot(centers));
     return (side_length / light_blob_i.length < 10 && side_length / light_blob_i.length > 0.5);
 }
-// 判断两个灯条的长度比
+
+/**
+ * name @ lengthRatioJudge
+ * params @ 两个LightBlob
+ * func @ 判断两个灯条的长度比(长度比在0.4到2.5之间)
+ * return @ static bool
+*/
 static bool lengthRatioJudge(const LightBlob &light_blob_i, const LightBlob &light_blob_j) {
     return (light_blob_i.length / light_blob_j.length < 2.5
             && light_blob_i.length / light_blob_j.length > 0.4);
 }
 
-/* 判断两个灯条的错位度，不知道英文是什么！！！ */
+/**
+ * name @ CuoWeiDuJudge
+ * params @ 两个LightBlob
+ * func @ 判断两个灯条的错位度，不知道英文是什么！！！
+ * return @ static bool
+*/
 static bool CuoWeiDuJudge(const LightBlob &light_blob_i, const LightBlob &light_blob_j) {
     float angle_i = light_blob_i.rect.size.width > light_blob_i.rect.size.height ? light_blob_i.rect.angle :
                     light_blob_i.rect.angle - 90;
     float angle_j = light_blob_j.rect.size.width > light_blob_j.rect.size.height ? light_blob_j.rect.angle :
                     light_blob_j.rect.angle - 90;
+    //取两角平均值并换算成弧度
     float angle = (angle_i + angle_j) / 2.0 / 180.0 * 3.14159265459;
     if (abs(angle_i - angle_j) > 90) {
         angle += 3.14159265459 / 2;
     }
+    //？？？四元数？？？
     Vector2f orientation(cos(angle), sin(angle));
     Vector2f p2p(light_blob_j.rect.center.x - light_blob_i.rect.center.x,
                  light_blob_j.rect.center.y - light_blob_i.rect.center.y);
     return abs(orientation.dot(p2p)) < 25;
 }
+
+/**
+ * name @ boxAngleJudge
+ * params @ 两个LightBlob
+ * func @ 判断装甲板方向
+ * return @ static bool
+*/
 // 判断装甲板方向
 static bool boxAngleJudge(const LightBlob &light_blob_i, const LightBlob &light_blob_j) {
+    //计算灯条i与j的角度 angle(-90,0] 逆时针angle 顺时针angle-90
     float angle_i = light_blob_i.rect.size.width > light_blob_i.rect.size.height ? light_blob_i.rect.angle :
                     light_blob_i.rect.angle - 90;
     float angle_j = light_blob_j.rect.size.width > light_blob_j.rect.size.height ? light_blob_j.rect.angle :
                     light_blob_j.rect.angle - 90;
+    //求两角平均值
     float angle = (angle_i + angle_j) / 2.0;
+    //如果两灯条旋转方向不同
     if (abs(angle_i - angle_j) > 90) {
         angle += 90.0;
     }
     return (-120.0 < angle && angle < -60.0) || (60.0 < angle && angle < 120.0);
 }
-// 判断两个灯条是否可以匹配
+
+/**
+ * name @ isCoupleLight
+ * params @ 两个LightBlob,unsigned char敌方颜色
+ * func @ 判断两个灯条是否可以匹配
+ * return @ static bool
+*/
 static bool isCoupleLight(const LightBlob &light_blob_i, const LightBlob &light_blob_j, uint8_t enemy_color) {
+    //1两个灯条都是敌方颜色
+    //2两个灯条的长度比(长度比在0.4到2.5之间)
+    //3两个灯条的间距(在装甲板长度的0.5到10倍之间)
+    //4两个灯条的角度差(小于20度)
+    //5装甲板方向符合条件
+    //6错位度符合条件
     return light_blob_i.blob_color == enemy_color &&
            light_blob_j.blob_color == enemy_color &&
            lengthRatioJudge(light_blob_i, light_blob_j) &&
@@ -94,7 +130,13 @@ static bool isCoupleLight(const LightBlob &light_blob_i, const LightBlob &light_
            CuoWeiDuJudge(light_blob_i, light_blob_j);
 
 }
-// 匹配所有灯条，得出装甲板候选区
+
+/**
+ * name @ ArmorFinder::matchArmorBoxes
+ * params @ 图像src,图像中灯条light_blobs,装甲板区域armor_boxes
+ * func @ 匹配所有灯条，得出装甲板候选区
+ * return @ static bool
+*/
 bool ArmorFinder::matchArmorBoxes(const cv::Mat &src, const LightBlobs &light_blobs, ArmorBoxes &armor_boxes) {
     armor_boxes.clear();
     for (int i = 0; i < light_blobs.size() - 1; ++i) {
@@ -125,6 +167,7 @@ bool ArmorFinder::matchArmorBoxes(const cv::Mat &src, const LightBlobs &light_bl
     }
     return !armor_boxes.empty();
 }
+
 // 在给定的图像上寻找装甲板
 bool ArmorFinder::findArmorBox(const cv::Mat &src, ArmorBox &box) {
     LightBlobs light_blobs; // 存储所有可能的灯条
