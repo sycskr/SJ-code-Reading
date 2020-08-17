@@ -6,7 +6,7 @@
 
 > **上海交通大学**
 >
-> https://github.com/sycskr/SJ-code-Reading
+> 代码注释见：https://github.com/sycskr/SJ-code-Reading
 
 ```
 .
@@ -17,7 +17,7 @@
     |     └──armor_finder.h
     |
     └── src                     // 自瞄源码
-          ├──anti_top.cpp
+          ├──anti_top.cpp       //反小陀螺
           |
           ├──armor_box.cpp
           |
@@ -113,11 +113,90 @@
 
 #### 4、find
 
-##### 4.1find_armor_box
+#####        4.1find_armor_box
+
+> 其中RotateRect的角度计算
+>
+> https://www.cnblogs.com/panxiaochun/p/5478555.html
+
+```c++
+/**
+ * name @ angelJudge
+ * params @ 两个LightBlob
+ * func @ 判断两个灯条的角度差(小于20度)
+ * return @ static bool
+*/
+```
 
 
 
-##### 4.2find_light_blobs
+```c++
+/**
+ * name @ heightJudge
+ * params @ 两个LightBlob
+ * func @ 判断两个灯条的高度差（小于30）
+ * return @ static bool
+*/
+```
+
+
+
+```c++
+/**
+ * name @ lengthJudge
+ * params @ 两个LightBlob
+ * func @ 判断两个灯条的间距(在装甲板长度的0.5到10倍之间)
+ * return @ static bool
+*/
+```
+
+
+
+```c++
+/**
+ * name @ lengthRatioJudge
+ * params @ 两个LightBlob
+ * func @ 判断两个灯条的长度比(长度比在0.4到2.5之间)
+ * return @ static bool
+*/
+```
+
+
+
+```c++
+/**
+ * name @ CuoWeiDuJudge
+ * params @ 两个LightBlob
+ * func @ 判断两个灯条的错位度，不知道英文是什么！！！
+ * return @ static bool
+*/
+```
+
+
+
+```c++
+/**
+ * name @ boxAngleJudge
+ * params @ 两个LightBlob
+ * func @ 判断装甲板方向
+ * return @ static bool
+*/
+```
+
+
+
+```c++
+/**
+ * name @ isCoupleLight
+ * params @ 两个LightBlob,unsigned char敌方颜色
+ * func @ 判断两个灯条是否可以匹配
+ * return @ static bool
+*/
+```
+
+
+
+#####        4.2find_light_blobs
 
 #### 5、searching_state
 
@@ -133,11 +212,11 @@
 
 #### 8、tracking_state
 
-##### 8.1tracking_state
+#####         8.1tracking_state
 
 
 
-##### 8.2armor_finder
+#####         8.2armor_finder
 
 
 
